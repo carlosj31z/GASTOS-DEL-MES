@@ -76,6 +76,28 @@
         .parte-pagada { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
         .parte-pagada button { background:rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.06); border-radius:14px; padding:9px 14px; min-height:40px; font-size:0.78rem; font-weight:600; cursor:pointer; color:var(--ink-soft); transition:background 0.15s, color 0.15s, border-color 0.15s; }
         .parte-pagada button.pagado { background:rgba(48,209,88,0.16); border-color:rgba(48,209,88,0.35); color:#177a34; text-decoration:line-through; }
+        .deuda-gasto { margin-top:10px; padding:10px 12px; border-radius:14px; background:rgba(255,159,10,0.09); border:1px solid rgba(255,159,10,0.18); }
+        .deuda-gasto.saldado { background:rgba(48,209,88,0.10); border-color:rgba(48,209,88,0.22); }
+        .deuda-gasto.propio { background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.05); }
+        .deuda-top { display:flex; justify-content:space-between; gap:8px; align-items:baseline; flex-wrap:wrap; font-size:0.8rem; font-weight:700; color:var(--ink-soft); }
+        .deuda-top .estado { font-variant-numeric:tabular-nums; }
+        .deuda-gasto.saldado .estado { color:#177a34; }
+        .deuda-gasto:not(.saldado) .estado { color:#a05a00; }
+        .progress { height:7px; border-radius:6px; background:rgba(0,0,0,0.08); margin-top:8px; overflow:hidden; }
+        .progress > div { height:100%; border-radius:6px; background:linear-gradient(90deg, #4cd971, var(--accent-green)); transition:width 0.3s; }
+        .deuda-gasto .parte-pagada { margin-top:8px; }
+        .parte-pagada button.btn-abono { background:rgba(10,132,255,0.12); border-color:rgba(10,132,255,0.3); color:var(--accent-blue); }
+        .parte-pagada button.btn-saldar { background:rgba(48,209,88,0.14); border-color:rgba(48,209,88,0.3); color:#177a34; }
+        .modal-content.scroll { max-height:90vh; overflow-y:auto; }
+        .abono-info { color:#d1d1d6; font-size:0.88rem; font-weight:600; margin:6px 0 4px; line-height:1.5; }
+        .abono-info strong { color:#fff; }
+        .abono-hist { list-style:none; margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+        .abono-hist li { display:flex; justify-content:space-between; align-items:center; gap:8px; background:rgba(255,255,255,0.08); border-radius:12px; padding:8px 12px; color:#f5f5f7; font-size:0.85rem; font-weight:600; }
+        .abono-hist li button { background:rgba(255,69,58,0.18); border:none; color:#ff6961; border-radius:10px; min-width:34px; min-height:34px; cursor:pointer; font-weight:700; }
+        .modal-content .btn-row { display:flex; gap:10px; }
+        .modal-content .btn-row .btn { margin-top:12px; }
+        .modal-content .btn { color:#f5f5f7; }
+        .modal-content .btn-primary { color:#fff; }
         .voucher-thumbnails { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; min-width:0; }
         .voucher-thumb { width:42px; height:42px; border-radius:10px; object-fit:cover; cursor:pointer; border:1px solid rgba(0,0,0,0.08); flex-shrink:0; }
         .vacio { text-align:center; color:var(--ink-muted); padding:24px 0; font-size:0.9rem; font-weight:500; }
@@ -124,6 +146,12 @@
         body.dark .deuda-box.vacio-mes { background:rgba(255,255,255,0.05); color:#8e8e93; }
         body.dark .tips { background:rgba(255,159,10,0.07); border-color:rgba(255,159,10,0.14); }
         body.dark .gasto-item { border-bottom-color:rgba(255,255,255,0.06); }
+        body.dark .deuda-top { color:#c7c7cc; }
+        body.dark .deuda-gasto.saldado .estado { color:#68e896; }
+        body.dark .deuda-gasto:not(.saldado) .estado { color:#ffb84d; }
+        body.dark .progress { background:rgba(255,255,255,0.12); }
+        body.dark .deuda-gasto.propio { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.08); }
+        body.dark .parte-pagada button.btn-saldar { color:#68e896; }
         body.dark .gasto-item:hover { background:rgba(255,255,255,0.03); }
 
         .categoria-personalizada { margin-top: 6px; display: none; }
@@ -198,9 +226,10 @@
         <div class="resumen-grid">
             <div class="resumen-item"><div class="label">Total</div><div class="value" id="total">S/ 0.00</div></div>
             <div class="resumen-item"><div class="label">Mitad</div><div class="value" id="mitad">S/ 0.00</div></div>
-            <div class="resumen-item"><div class="label">Diferencia</div><div class="value" id="diferencia">S/ 0.00</div></div>
+            <div class="resumen-item"><div class="label">Pendiente</div><div class="value" id="diferencia">S/ 0.00</div></div>
         </div>
         <div class="deuda-box" id="deudaBox">⚖️ Sin deuda este mes</div>
+        <div class="gasto-meta" id="abonadoMes" style="justify-content:center;margin-top:8px;"></div>
         <div class="chart-container"><canvas id="chartCanvas" height="120"></canvas></div>
     </div>
 
@@ -224,6 +253,7 @@
         <h4>💡 Sugerencias</h4>
         <ul>
             <li>📌 Cada gasto tiene su <strong>mitad (50%)</strong>.</li>
+            <li>💵 Usa <strong>Abonar</strong> para pagos parciales (ej. S/ 100 de una deuda mayor).</li>
             <li>📎 Las imágenes se guardan en <strong>ImgBB</strong> (sin límite).</li>
             <li>☁️ Datos sincronizados con <strong>Firebase</strong>.</li>
         </ul>
@@ -245,6 +275,26 @@
             <button id="zoomIn" aria-label="Aumentar zoom" title="Aumentar zoom">+</button>
             <button id="zoomReset" aria-label="Restablecer zoom" title="Restablecer zoom">⟲</button>
         </div>
+    </div>
+</div>
+
+<!-- MODAL ABONOS -->
+<div class="modal-overlay" id="abonoModal">
+    <div class="modal-content scroll">
+        <button class="modal-close" id="abonoModalClose" aria-label="Cerrar abonos">&times;</button>
+        <h3>💵 Pagos parciales</h3>
+        <input type="hidden" id="abonoGastoId" />
+        <div class="abono-info" id="abonoInfo"></div>
+        <div id="abonoForm">
+            <label for="abonoMonto">Monto a abonar (S/)</label>
+            <input type="number" id="abonoMonto" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+            <div class="field-error" id="abonoError">Ingresa un monto válido.</div>
+            <div class="btn-row">
+                <button class="btn" id="btnAbonoTodo">Todo lo pendiente</button>
+                <button class="btn btn-primary" id="btnAbonoGuardar">Registrar</button>
+            </div>
+        </div>
+        <ul class="abono-hist" id="abonoHist"></ul>
     </div>
 </div>
 
@@ -326,6 +376,29 @@
     Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif";
 
     // ============================================================
+    //  DEUDA POR GASTO / ABONOS (pagos parciales)
+    // ============================================================
+    const r2 = n => Math.round(n * 100) / 100;
+    const fmt = n => 'S/ ' + n.toFixed(2);
+    const deudorDe = g => g.pagado_por === 'Carlos' ? 'Cintia' : 'Carlos';
+    const cuotaDe = g => r2(g.monto / 2);
+    const abonadoDe = g => Math.min(cuotaDe(g), r2((g.abonos || []).reduce((s, a) => s + a.monto, 0)));
+    const pendienteDe = g => r2(cuotaDe(g) - abonadoDe(g));
+    const nuevoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+    // Asegura la estructura y migra el formato anterior (partePagada) a abonos.
+    function normalizarGasto(g) {
+        g.vouchers = g.vouchers || [];
+        if (!Array.isArray(g.abonos)) {
+            g.abonos = [];
+            if ((g.partePagada || []).includes(deudorDe(g))) {
+                g.abonos.push({ id: nuevoId(), monto: cuotaDe(g), fecha: g.fecha });
+            }
+        }
+        delete g.partePagada;
+    }
+
+    // ============================================================
     //  DOM
     // ============================================================
     const monthPicker = document.getElementById('monthPicker');
@@ -353,6 +426,14 @@
     const clearMonthBtn = document.getElementById('clearMonthBtn');
     const darkToggle = document.getElementById('darkToggle');
     const toastContainer = document.getElementById('toastContainer');
+    const abonadoMes = document.getElementById('abonadoMes');
+    const abonoModal = document.getElementById('abonoModal');
+    const abonoGastoId = document.getElementById('abonoGastoId');
+    const abonoInfo = document.getElementById('abonoInfo');
+    const abonoForm = document.getElementById('abonoForm');
+    const abonoMonto = document.getElementById('abonoMonto');
+    const abonoError = document.getElementById('abonoError');
+    const abonoHist = document.getElementById('abonoHist');
 
     const imageModal = document.getElementById('imageModal');
     const imageModalImg = document.getElementById('imageModalImg');
@@ -497,14 +578,11 @@
         try {
             const doc = await db.collection('gastosCompartidos').doc('datos').get();
             gastos = doc.exists ? (doc.data().gastos || []) : [];
-            gastos.forEach(g => {
-                if (!g.partePagada) g.partePagada = [];
-                if (!g.vouchers) g.vouchers = [];
-            });
+            gastos.forEach(normalizarGasto);
         } catch (e) {
             console.error(e);
             const backup = localStorage.getItem('gastos_backup');
-            if (backup) gastos = JSON.parse(backup).gastos || [];
+            if (backup) { gastos = JSON.parse(backup).gastos || []; gastos.forEach(normalizarGasto); }
             mostrarToast('⚠️ Sin conexión: mostrando datos guardados en este dispositivo', 'error');
         }
         renderizar();
@@ -542,12 +620,14 @@
     function renderResumen(gm) {
         const total = gm.reduce((s,g) => s+g.monto, 0);
         const mitad = total/2;
-        let saldo = 0;
+        let saldo = 0, abonado = 0;
         gm.forEach(g => {
-            const m = g.monto/2;
-            if (g.pagado_por === 'Carlos' && !g.partePagada.includes('Cintia')) saldo += m;
-            if (g.pagado_por === 'Cintia' && !g.partePagada.includes('Carlos')) saldo -= m;
+            const pend = pendienteDe(g);
+            abonado += abonadoDe(g);
+            saldo += g.pagado_por === 'Carlos' ? pend : -pend;
         });
+        saldo = r2(saldo);
+        abonadoMes.textContent = abonado > 0 ? `💵 Abonado este mes: ${fmt(r2(abonado))}` : '';
         totalSpan.textContent = 'S/ '+total.toFixed(2);
         mitadSpan.textContent = 'S/ '+mitad.toFixed(2);
         diferenciaSpan.textContent = 'S/ '+Math.abs(saldo).toFixed(2);
@@ -557,10 +637,29 @@
         else { deudaBox.textContent = saldo > 0 ? `Cintia debe S/ ${saldo.toFixed(2)} a Carlos` : `Carlos debe S/ ${(-saldo).toFixed(2)} a Cintia`; deudaBox.classList.add('debe'); }
     }
 
+    function htmlDeuda(g) {
+        const deudor = deudorDe(g), cuota = cuotaDe(g), abonado = abonadoDe(g), pend = pendienteDe(g);
+        const saldado = pend <= 0.005;
+        const pct = cuota > 0 ? Math.min(100, Math.round(abonado / cuota * 100)) : 100;
+        const n = g.abonos.length;
+        return `
+            <div class="deuda-gasto ${saldado ? 'saldado' : ''}">
+                <div class="deuda-top">
+                    <span>${deudor} debe ${fmt(cuota)}</span>
+                    <span class="estado">${saldado ? '✅ Saldado' : `Falta ${fmt(pend)}`}</span>
+                </div>
+                <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Avance de pago de ${deudor}"><div style="width:${pct}%"></div></div>
+                ${abonado > 0 && !saldado ? `<div class="gasto-meta">Abonado ${fmt(abonado)} de ${fmt(cuota)} (${pct}%)</div>` : ''}
+                <div class="parte-pagada">
+                    <button class="btn-abono abonar-btn" data-id="${g.id}">${saldado ? '🧾 Ver abonos' : '💵 Abonar'}${n && !saldado ? ' · ' + n : ''}</button>
+                    ${saldado ? '' : `<button class="btn-saldar saldar-btn" data-id="${g.id}">✅ Saldar todo</button>`}
+                </div>
+            </div>`;
+    }
+
     function renderLista(gm) {
         if (!gm.length) { listaDiv.innerHTML = '<div class="vacio">No hay gastos</div>'; return; }
         listaDiv.innerHTML = [...gm].sort((a,b) => new Date(b.fecha)-new Date(a.fecha)).map(g => {
-            const pp = g.partePagada || [];
             return `
                 <div class="gasto-item">
                     <div class="gasto-row">
@@ -576,10 +675,7 @@
                         </div>
                     </div>
                     ${g.vouchers.length ? `<div class="voucher-thumbnails">${g.vouchers.map((v,i) => `<img src="${v}" class="voucher-thumb" data-id="${g.id}" data-index="${i}" alt="Voucher ${i+1} de ${escapeHtml(g.categoria)}" />`).join('')}</div>` : ''}
-                    <div class="parte-pagada">
-                        <button class="parte-btn ${pp.includes('Carlos')?'pagado':''}" data-id="${g.id}" data-p="Carlos" aria-pressed="${pp.includes('Carlos')}">${pp.includes('Carlos')?'✅':'⬜'} Carlos</button>
-                        <button class="parte-btn ${pp.includes('Cintia')?'pagado':''}" data-id="${g.id}" data-p="Cintia" aria-pressed="${pp.includes('Cintia')}">${pp.includes('Cintia')?'✅':'⬜'} Cintia</button>
-                    </div>
+                    ${htmlDeuda(g)}
                 </div>`;
         }).join('');
 
@@ -605,14 +701,73 @@
         });
         listaDiv.querySelectorAll('.edit-btn').forEach(b => b.onclick = () => abrirEditor(b.dataset.id));
         listaDiv.querySelectorAll('.voucher-icon, .voucher-thumb').forEach(b => b.onclick = () => abrirModalImagen(b.dataset.id, parseInt(b.dataset.index||0)));
-        listaDiv.querySelectorAll('.parte-btn').forEach(b => b.onclick = async function() {
+        listaDiv.querySelectorAll('.abonar-btn').forEach(b => b.onclick = () => abrirAbonos(b.dataset.id));
+        listaDiv.querySelectorAll('.saldar-btn').forEach(b => b.onclick = async function() {
             const g = gastos.find(g => g.id === this.dataset.id);
             if (!g) return;
-            const i = g.partePagada.indexOf(this.dataset.p);
-            i >= 0 ? g.partePagada.splice(i,1) : g.partePagada.push(this.dataset.p);
+            const pend = pendienteDe(g);
+            if (pend <= 0) return;
+            const abono = { id: nuevoId(), monto: pend, fecha: new Date().toISOString() };
+            g.abonos.push(abono);
             await guardarEnFirebase(); renderizar();
+            mostrarToast(`✅ ${deudorDe(g)} saldó ${fmt(pend)}`, 'success', {
+                accionLabel: 'Deshacer',
+                duracion: 6000,
+                onAccion: async () => {
+                    g.abonos = g.abonos.filter(a => a.id !== abono.id);
+                    await guardarEnFirebase(); renderizar();
+                }
+            });
         });
     }
+
+    // ============================================================
+    //  MODAL DE ABONOS
+    // ============================================================
+    function abrirAbonos(id) {
+        const g = gastos.find(g => g.id === id);
+        if (!g) return;
+        abonoGastoId.value = id;
+        const pend = pendienteDe(g);
+        abonoInfo.innerHTML = `<strong>${escapeHtml(g.categoria)}</strong> · ${fmt(g.monto)} pagó ${escapeHtml(g.pagado_por)}<br>` +
+            `${deudorDe(g)} debe <strong>${fmt(cuotaDe(g))}</strong> · abonado <strong>${fmt(abonadoDe(g))}</strong> · ` +
+            (pend > 0.005 ? `falta <strong>${fmt(pend)}</strong>` : '<strong>✅ saldado</strong>');
+        abonoForm.style.display = pend > 0.005 ? 'block' : 'none';
+        abonoMonto.max = pend;
+        abonoMonto.value = '';
+        limpiarError(abonoMonto, abonoError);
+        abonoHist.innerHTML = g.abonos.map(a => `
+            <li><span>${new Date(a.fecha).toLocaleDateString()} · ${fmt(a.monto)}</span>
+            <button data-aid="${a.id}" aria-label="Quitar abono de ${fmt(a.monto)}" title="Quitar abono">✕</button></li>`).join('');
+        abonoHist.querySelectorAll('button').forEach(b => b.onclick = async () => {
+            if (!confirm('¿Quitar este abono?')) return;
+            g.abonos = g.abonos.filter(a => a.id !== b.dataset.aid);
+            await guardarEnFirebase(); renderizar(); abrirAbonos(id);
+        });
+        abonoModal.classList.add('active');
+        if (pend > 0.005) setTimeout(() => abonoMonto.focus(), 50);
+    }
+    async function registrarAbono() {
+        const g = gastos.find(g => g.id === abonoGastoId.value);
+        if (!g) return;
+        const pend = pendienteDe(g);
+        const monto = r2(parseFloat(abonoMonto.value));
+        if (!monto || monto <= 0) { marcarError(abonoMonto, abonoError, 'Ingresa un monto válido mayor a 0.'); return; }
+        if (monto > pend + 0.001) { marcarError(abonoMonto, abonoError, `Máximo ${fmt(pend)} (lo que falta pagar).`); return; }
+        g.abonos.push({ id: nuevoId(), monto, fecha: new Date().toISOString() });
+        await guardarEnFirebase(); renderizar();
+        mostrarToast(`💵 Abono de ${fmt(monto)} registrado`, 'success');
+        abrirAbonos(g.id);
+    }
+    document.getElementById('btnAbonoGuardar').onclick = registrarAbono;
+    abonoMonto.addEventListener('keydown', e => { if (e.key === 'Enter') registrarAbono(); });
+    abonoMonto.addEventListener('input', () => limpiarError(abonoMonto, abonoError));
+    document.getElementById('btnAbonoTodo').onclick = () => {
+        const g = gastos.find(g => g.id === abonoGastoId.value);
+        if (g) abonoMonto.value = pendienteDe(g).toFixed(2);
+    };
+    document.getElementById('abonoModalClose').onclick = () => abonoModal.classList.remove('active');
+    abonoModal.onclick = e => { if (e.target === abonoModal) abonoModal.classList.remove('active'); };
 
     function limpiarChartVacio(container) {
         const prev = container.querySelector('.chart-empty');
@@ -841,7 +996,7 @@
                 fecha: new Date().toISOString(),
                 mes: mesActual,
                 vouchers: urls,
-                partePagada: []
+                abonos: []
             });
 
             const ok = await guardarEnFirebase();
@@ -922,6 +1077,10 @@
                 }
             }
 
+            if (g.pagado_por !== editPagado.value && g.abonos.length) {
+                if (!confirm('Cambiar quién pagó borrará los abonos registrados de este gasto. ¿Continuar?')) { setBotonCargando(btnGuardarEditSpinner, btnGuardarEditLabel, btnGuardarEdit, false, 'Guardando...', 'Guardar cambios'); return; }
+                g.abonos = [];
+            }
             g.categoria = cat; g.pagado_por = editPagado.value; g.monto = monto; g.vouchers = urls;
             const ok = await guardarEnFirebase();
             if (ok) mostrarToast('✅ Cambios guardados', 'success');
@@ -953,7 +1112,7 @@
             try {
                 const data = JSON.parse(e.target.result);
                 if (data.gastos && confirm('¿Reemplazar todos los datos actuales con los del archivo importado?')) {
-                    gastos = data.gastos; gastos.forEach(g => { g.partePagada = g.partePagada||[]; g.vouchers = g.vouchers||[]; });
+                    gastos = data.gastos; gastos.forEach(normalizarGasto);
                     await guardarEnFirebase(); renderizar();
                     mostrarToast('✅ Datos importados', 'success');
                 }
